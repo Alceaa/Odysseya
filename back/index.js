@@ -20,6 +20,7 @@ process.on('SIGTERM', () => {
 });
 
 app.set('views', path.join(__dirname, '../front'));
+app.use(express.static(path.join(__dirname, '../front')));
 app.set('view engine','ejs');
 
 //views

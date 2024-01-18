@@ -1,4 +1,34 @@
+<!DOCTYPE html>
 <html>
+    <head>
+        <%- include("head.ejs") %>
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <script type="text/javascript" src="js/main_background.js"></script>
+    </head>
 <body>
+    <div class="container">
+        <div class="menu">
+            <div class="leftmenu">
+                
+            </div>
+            <div class="rightmenu">
+                <ul>
+                    <li id="highlight"><a href="/">Домашняя страница</a></li>
+                    <li><a href="/">Построить маршрут</a></li>
+                    <li><a href="/">Личный кабинет</a></li>
+                    <li id="red-highlight"><a href="/">Выйти</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="text">
+            <h4>Путеводитель * Справочник</h4>
+            <h1> ОДИССЕЯ </h1>
+            <h3> Объекты культурного наследия России </h3>
+            <button class="btn"> Построить маршрут</button>
+        </div>
+    </div>
 </body>
+<footer>
+    <%- include("footer.ejs") %>
+</footer>
 </html>
