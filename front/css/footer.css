@@ -1,7 +1,24 @@
+@media screen and (min-width: 1024px){
+    .footer-a, .footer-p{
+        font-size: 18px;
+    }
+}
+@media screen and (min-width: 768px) and (max-width: 1023px) { /* tablet */
+    .footer-a, .footer-p{
+        font-size: 16px;
+    }
+}
+
+@media screen and (max-width: 767px) {  /* phone */
+    .footer-a, .footer-p{
+        font-size: 11px;
+    }  
+}
 footer{
     background-color: rgba(0, 0, 0, 0.2);
     padding: 20px 0;
     text-align: center;
+    color: white;
 }
 .footer-content{
     display: flex;

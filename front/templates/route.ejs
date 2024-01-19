@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <%- include("head.ejs") %>
+        <link rel="stylesheet" type="text/css" href="css/route.css" />
+        <link rel="stylesheet" type="text/css" href="css/menu.css" />
+        <script type="text/javascript" src="js/route.js"></script>
+    </head>
+<body>
+    <div class="container">
+        <div class="menu">
+            <div class="leftmenu">
+                <img src="/img/logo.jpg" class="logo">
+            </div>
+            <div class="rightmenu">
+                <ul>
+                    <li><a href="/">Домашняя страница</a></li>
+                    <li id="highlight"><a href="/route">Построить маршрут</a></li>
+                    <li><a href="/">Личный кабинет</a></li>
+                    <li id="red-highlight"><a href="/">Выйти</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="separator">
+            <div class="form-container">
+                <form method="POST" id="calc-form" action="javascript:calc()">
+                    <div class="step">
+                        <div class="step-name step1">
+                            <h2 class="step1 step-highlight">Шаг 1.</h2>
+                        </div>
+                        <div class="step-container">
+                            <div class="select-h2">
+                                <h2>Выберите регион:</h2>
+                            </div>
+                            <select name="region" id="region-select">
+                                <option value=""><- Выберите регион -></option> 
+                                <% for(var i = 0; i < regions.length; i++) {%>
+                                    <option value="<%=i %>"><%=regions[i]["region"] %></option>
+                                <%} %>
+                            </select>
+                            <div class="count-lebel">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step step2-container">
+                        <div class="step-name step2">
+                            <h2 class="step2">Шаг 2.</h2>
+                        </div>
+                        <div class="step-container">
+                            <div class="select-h2">
+                                <h2>Укажите желаемое количество объектов культурного наследия:</h2>
+                            </div>
+                            <input type="range" name="count" id="range-input" />
+                            <input type="number" name="count-number" id="count-number" oninput="range-input.value"/>
+                        </div>
+                    </div>
+                    <div class="button step2-button">
+                        <input type="submit" name="submit" value="Создать маршрут"/>
+                    </div>
+                </form>
+            </div>
+            <div class="map">
+                <div id="app" style="width: 600px; height: 400px"></div>
+            </div>
+        </div>
+    </div>
+</body>
+<footer>
+    <%- include("footer.ejs") %>
+</footer>
+</html>
