@@ -63,6 +63,8 @@ function calc(){
 async function initMap(path) {
     await ymaps3.ready;
 
+    
+
     const center = [path[Math.floor(Object.keys(path).length / 2)]["x"], path[Math.floor(Object.keys(path).length / 2)]["y"]];
 
     const {YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer} = ymaps3;
@@ -86,7 +88,8 @@ async function initMap(path) {
             markerSource: 'markerSource',
             coordinates: [path[i]["x"], path[i]["y"]],
             draggable: false,
-            mapFollowsOnDrag: false
+            mapFollowsOnDrag: false,
+            popup: {content: 'Popup on the default marker', position: 'left'}
             },
             markerElement
         );

@@ -1,3 +1,33 @@
+class Encrypter {
+  constructor(encryptionKey) {
+    this.algorithm = "aes-192-cbc";
+    this.key = crypto.scryptSync(encryptionKey, "salt", 24);
+  }
+
+  encrypt(clearText) {
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
+    const encrypted = cipher.update(clearText, "utf8", "hex");
+    return [
+      encrypted + cipher.final("hex"),
+      Buffer.from(iv).toString("hex"),
+    ].join("|");
+  }
+
+  dencrypt(encryptedText) {
+    const [encrypted, iv] = encryptedText.split("|");
+    if (!iv) throw new Error("IV not found");
+    const decipher = crypto.createDecipheriv(
+      this.algorithm,
+      this.key,
+      Buffer.from(iv, "hex")
+    );
+    return decipher.update(encrypted, "hex", "utf8") + decipher.final("utf8");
+  }
+}
+
+
+
 const MySQL = require('./db.js');
 const Utils = require('./utils.js');
 
@@ -9,9 +39,9 @@ const app = express();
 const bodyParser = require('body-parser');
 const cookieParser = require("cookie-parser");
 const sessions = require('express-session');
-const { encode } = require('punycode');
+var crypto = require('crypto');
 
-let encodeUrl = parseUrl.urlencoded({ extended: false });
+let encodeUrl = bodyParser.urlencoded({ extended: false });
  
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,10 +50,10 @@ app.use((req, res, next) => {
 
 //session middleware
 app.use(sessions({
-  secret: "thisismysecrctekey",
+  secret: "t122323",
   saveUninitialized:true,
   cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 24 hours
-  resave: false
+  resave: true
 }));
 
 app.use(cookieParser());
@@ -51,25 +81,43 @@ app.set('view engine','ejs');
 const mySQL = new MySQL();
 mySQL.openConnection();
 
+
+//hash password
+const encrypter = new Encrypter("secret");
+
 //utils
 const util = new Utils();
 
 //views
 app.get('/', (req, res) => {
-  res.render('templates/index');
+  let log = false;
+  if(req.session.user){
+    log = true;
+  }
+  res.render('templates/index', {'log': log});
 });
 
 app.get('/route', (req, res) => {
+  let log = false;
+  if(req.session.user){
+    log = true;
+  }
   var query = "SELECT DISTINCT region FROM culturalObjects WHERE map IS NOT NULL ORDER BY region";
   mySQL.makeQuery(query, function(result){
-    res.render('templates/route', {'regions': JSON.parse(result)});
+    res.render('templates/route', {'regions': JSON.parse(result), 'log':log});
   });
 })
 
 app.get('/register', (req, res) => {
   res.render('templates/reg');
 });
-
+app.get('/login', (req, res) => {
+  res.render('templates/login');
+});
+app.get('/logout', (req, res) => {
+  req.session.user = null;
+  res.redirect('/');
+});
 
 //requests 
 app.post('/region_count', function (req, res) {
@@ -89,9 +137,82 @@ app.post('/calc', function (req, res) {
       res.send(JSON.stringify(path));
   })
 })
-app.post('/register--data', encodeUrl, (req, res) => {
-  var firstName = req.body.firstName;
-  var lastName = req.body.lastName;
-  var userName = req.body.userName;
-  var password = req.body.password;
+app.post('/register-data', encodeUrl, (req, res) => {
+  var firstName = req.body["firstname"];
+  var lastName = req.body["lastname"];
+  var userName = req.body["username"];
+  var password = req.body["password"];
+  var errors = [];
+  if(firstName == ""){
+    errors.push({"firstName":"Имя пустое"});
+  }
+  if(lastName == ""){
+    errors.push({"lastName":"Фамилия пустая"});
+  }
+  if(userName == ""){
+    errors.push({"userName":"Имя пользователя пустое"});
+  }
+  if(password == ""){
+    errors.push({"password":"Пароль пустой"})
+  }
+  if(password.length < 8 ){
+    errors.push({"passwordShort":"Пароль слишком короткий"});
+  }
+  password = encrypter.encrypt(password);
+  var query = "SELECT * FROM users WHERE username = ?";
+  query = mySQL.prepareQuery(query, userName);
+  mySQL.makeQuery(query, function(result){
+    if(Object.keys(JSON.parse(result)).length > 0){
+      errors.push({"usernameIncorrect":"Пользователь с таким именем уже существует"})
+    }else{
+      query = "INSERT INTO users(firstname, lastname, username, password) VALUE(?, ?, ?, ?)";
+      query = mySQL.prepareQuery(query, [firstName, lastName, userName, password]);
+      mySQL.makeQuery(query, function(result){});
+    }
+  })
+  if(errors.length == 0){
+    req.session.user = {
+      username: userName,
+      password: password 
+    };
+  }
+  res.send(errors);
+  res.end();
 });
+
+app.post('/login-data', encodeUrl, (req, res) => {
+    var userName = req.body["username"];
+    var password = req.body["password"];
+    var errors = [];
+    if(userName == ""){
+      errors.push({"userName":"Имя пользователя пустое"});
+    }
+    else if(password == ""){
+      errors.push({"password":"Пароль пустой"});
+    }
+    else{
+      var query = "SELECT username, password FROM users WHERE username = ?";
+      query = mySQL.prepareQuery(query, userName);
+      mySQL.makeQuery(query, function(result){
+        if(Object.keys(JSON.parse(result)).length > 0){
+          var des = encrypter.dencrypt(JSON.parse(result)[0]["password"]);
+          if(des != password){
+            res.end();
+            errors.push({"passwordIncorrect":"Пароль неверный"});
+          }
+        }else{
+          res.end();
+          errors.push({"usernameIncorrect":"Такого пользователя не существует"});
+        }
+      });
+    }
+    if(errors.length == 0){
+      req.session.user = {
+        username: userName,
+        password: password 
+      };
+    }
+    res.end();
+});
+
+

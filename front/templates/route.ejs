@@ -16,8 +16,12 @@
                 <ul>
                     <li><a href="/">Домашняя страница</a></li>
                     <li id="highlight"><a href="/route">Построить маршрут</a></li>
-                    <li><a href="/">Личный кабинет</a></li>
-                    <li id="red-highlight"><a href="/">Выйти</a></li>
+                    <% if(log == true) {%>
+                    <li id="red-highlight"><a href="/logout">Выйти</a></li>
+                    <%} else{%>
+                    <li><a href="/login">Авторизация</a></li>
+                    <li><a href="/register">Регистрация</a></li>
+                    <%} %>
                 </ul>
             </div>
         </div>
