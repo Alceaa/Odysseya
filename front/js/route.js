@@ -89,7 +89,6 @@ async function initMap(path) {
             coordinates: [path[i]["x"], path[i]["y"]],
             draggable: false,
             mapFollowsOnDrag: false,
-            popup: {content: 'Popup on the default marker', position: 'left'}
             },
             markerElement
         );
